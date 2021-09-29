@@ -1,0 +1,32 @@
+#### How to perform MNAR imputation with ordered probit model with sample selection and random intercepts ####
+
+Author: Angelina Hammon
+Date: 	29.09.21
+
+-> load "mice_heckman_ordered_re1.R" -> imputation algorithm with GHQ
+-> load "mice_heckman_ordered_re2.R" -> imputation algorithm with AGHQ
+
+-> installation and loading of mice 
+-> installation and loading of bivprob.quad (bivprob.quad_2.0.tar.gz)
+
+-> cluster id in the data set has to be assigned in the predictor matrix as -2
+-> exclusion criterion has to be assigned in the predictor matrix as 1 and its variable name has to be specified with the excl="..." option in the mice function
+-> for multivariate missing data use missing indicator of variable that is supposed to be MNAR as predictor for other incomplete variables
+
+
+## little example with univariate missing data: ##
+
+data <- data.frame(y,r,x1,x2,x3,group)  # data set 
+# y is supposed to be MNAR, group is cluster id, x3 is exclusion criterion
+
+ini <- mice(data,m=1,maxit=0) 
+    
+pred_MNAR <- ini$pred
+pred_MNAR["y","r"] <- 0
+pred_MNAR["y","group"] <- -2
+   
+mice(data,m=5,maxit=1,method=c("2l.heckman1step_ord_re_aghq","","","","",""),pred=pred_MNAR,print=F,QP=rep(10,2),draw=T,excl="x3")
+# 2l.heckman1step_ord_re_aghq -> name of imputation function 
+# draw -> set TRUE if parameters should be drawn from approximate normal posterior
+# QP -> number of quadrature points for the two random intercepts (needs to be a vector of length 2)
+# excl -> give variable name of exclusion criterion as a string 
